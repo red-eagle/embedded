@@ -8,7 +8,7 @@
 namespace yii2tech\embedded;
 
 use ArrayObject;
-use yii\base\InvalidParamException;
+use yii\base\InvalidArgumentException;
 use yii\base\BaseObject;
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -71,11 +71,11 @@ class Mapping extends BaseObject
                     }
                     $value = $arrayObject;
                 } elseif (!($value instanceof \ArrayAccess)) {
-                    throw new InvalidParamException("Value should either an array or a null, '" . gettype($value) . "' given.");
+                    throw new InvalidArgumentException("Value should either an array or a null, '" . gettype($value) . "' given.");
                 }
             } else {
                 if (!is_object($value)) {
-                    throw new InvalidParamException("Value should either an object or a null, '" . gettype($value) . "' given.");
+                    throw new InvalidArgumentException("Value should either an object or a null, '" . gettype($value) . "' given.");
                 }
             }
         }
@@ -88,10 +88,10 @@ class Mapping extends BaseObject
      * @param object $owner owner object.
      * @return object|object[]|null embedded value.
      */
-    public function getValue($owner)
+    public function getValue($owner, $name = null)
     {
         if ($this->_value === false) {
-            $this->_value = $this->createValue($owner);
+            $this->_value = $this->createValue($owner, $name);
         }
         return $this->_value;
     }
@@ -106,16 +106,23 @@ class Mapping extends BaseObject
     }
 
     /**
-     * @param object $owner owner object
+     * @param object|ContainerTrait $owner owner object
      * @throws InvalidParamException on invalid source.
      * @return array|null|object value.
      */
-    private function createValue($owner)
+    private function createValue($owner, $name = null)
     {
         if (is_array($this->target)) {
             $targetConfig = $this->target;
         } else {
             $targetConfig = ['class' => $this->target];
+        }
+
+        $reflection = new \ReflectionClass($targetConfig['class']);
+
+        if ($isNested = array_key_exists(NestedTrait::class, $reflection->getTraits())) {
+            $targetConfig['owner'] = $owner;
+            $targetConfig['ownerAttribute'] = empty($name) ? '' : $name;
         }
 
         $sourceValue = $owner->{$this->source};
@@ -130,13 +137,17 @@ class Mapping extends BaseObject
             $result = new ArrayObject();
             foreach ($sourceValue as $key => $frame) {
                 if (!is_array($frame)) {
-                    throw new InvalidParamException("Source value for the embedded should be an array.");
+                    throw new InvalidArgumentException("Source value for the embedded should be an array.");
                 }
-                $result[$key] = Yii::createObject(array_merge($targetConfig, $frame));
+                $currentConfig = $targetConfig;
+                if ($isNested) {
+                    $currentConfig['index'] = $key;
+                }
+                $result[$key] = Yii::createObject(array_merge($currentConfig, $frame));
             }
         } else {
             if (!is_array($sourceValue)) {
-                throw new InvalidParamException("Source value for the embedded should be an array.");
+                throw new InvalidArgumentException("Source value for the embedded should be an array.");
             }
             $result = Yii::createObject(array_merge($targetConfig, $sourceValue));
         }

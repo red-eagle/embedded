@@ -108,7 +108,7 @@ class Validator extends \yii\validators\Validator
             } else {
                 foreach ($embedded as $embeddedModel) {
                     if (!($embeddedModel instanceof Model)) {
-                        throw new InvalidConfigException('Embedded object "' . get_class($embeddedModel) . '" must be an instance or descendant of "' . Model::className() . '".');
+                        throw new InvalidConfigException('Embedded object "' . get_class($embeddedModel) . '" must be an instance or descendant of "' . Model::class . '".');
                     }
                     if (!$embeddedModel->validate()) {
                         $error = $this->message;
@@ -117,7 +117,7 @@ class Validator extends \yii\validators\Validator
             }
         } else {
             if (!($embedded instanceof Model)) {
-                throw new InvalidConfigException('Embedded object "' . get_class($embedded) . '" must be an instance or descendant of "' . Model::className() . '".');
+                throw new InvalidConfigException('Embedded object "' . get_class($embedded) . '" must be an instance or descendant of "' . Model::class . '".');
             }
             if (!$embedded->validate()) {
                 $error = $this->message;

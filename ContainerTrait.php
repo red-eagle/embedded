@@ -1,15 +1,15 @@
 <?php
 /**
- * @link https://github.com/yii2tech
+ * @link      https://github.com/yii2tech
  * @copyright Copyright (c) 2015 Yii2tech
- * @license [New BSD License](http://www.opensource.org/licenses/bsd-license.php)
+ * @license   [New BSD License](http://www.opensource.org/licenses/bsd-license.php)
  */
 
 namespace yii2tech\embedded;
 
-use yii\base\InvalidConfigException;
-use yii\base\InvalidParamException;
 use Yii;
+use yii\base\Model;
+use yii\base\InvalidArgumentException;
 
 /**
  * ContainerTrait can be used to satisfy [[ContainerInterface]].
@@ -59,11 +59,12 @@ use Yii;
  *
  * In order to synchronize values between embedded entities and container use [[refreshFromEmbedded()]] method.
  *
- * @see ContainerInterface
- * @see Mapping
+ * @see    ContainerInterface
+ * @see    Mapping
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 1.0
+ * @since  1.0
+ * @mixin Model
  */
 trait ContainerTrait
 {
@@ -71,6 +72,7 @@ trait ContainerTrait
      * @var Mapping[]
      */
     private $_embedded = [];
+
 
     /**
      * PHP getter magic method.
@@ -135,7 +137,7 @@ trait ContainerTrait
 
     /**
      * Sets embedded object or list of objects.
-     * @param string $name embedded name
+     * @param string $name                embedded name
      * @param object|object[]|null $value embedded value.
      */
     public function setEmbedded($name, $value)
@@ -150,7 +152,7 @@ trait ContainerTrait
      */
     public function getEmbedded($name)
     {
-        return $this->getEmbeddedMapping($name)->getValue($this);
+        return $this->getEmbeddedMapping($name)->getValue($this, $name);
     }
 
     /**
@@ -165,11 +167,11 @@ trait ContainerTrait
         if (!isset($this->_embedded[$name])) {
             $method = $this->composeEmbeddedDeclarationMethodName($name);
             if (!method_exists($this, $method)) {
-                throw new InvalidParamException("'" . get_class($this) . "' has no declaration ('{$method}()') for the embedded '{$name}'");
+                throw new InvalidArgumentException("'" . get_class($this) . "' has no declaration ('{$method}()') for the embedded '{$name}'");
             }
             $mapping = call_user_func([$this, $method]);
             if (!$mapping instanceof Mapping) {
-                throw new InvalidConfigException("Mapping declaration '" . get_class($this) . "::{$method}()' should return instance of '" . Mapping::className() . "'");
+                throw new InvalidArgumentException("Mapping declaration '" . get_class($this) . "::{$method}()' should return instance of '" . Mapping::className() . "'");
             }
             $this->_embedded[$name] = $mapping;
         }
@@ -188,16 +190,16 @@ trait ContainerTrait
 
     /**
      * Declares embedded object.
-     * @param string $source source field name
+     * @param string $source       source field name
      * @param string|array $target target class or array configuration.
-     * @param array $config mapping extra configuration.
+     * @param array $config        mapping extra configuration.
      * @return Mapping embedding mapping instance.
      */
     public function mapEmbedded($source, $target, array $config = [])
     {
         return Yii::createObject(array_merge(
             [
-                'class' => Mapping::className(),
+                'class' => Mapping::class,
                 'source' => $source,
                 'target' => $target,
                 'multiple' => false,
@@ -208,16 +210,16 @@ trait ContainerTrait
 
     /**
      * Declares embedded list of objects.
-     * @param string $source source field name
+     * @param string $source       source field name
      * @param string|array $target target class or array configuration.
-     * @param array $config mapping extra configuration.
+     * @param array $config        mapping extra configuration.
      * @return Mapping embedding mapping instance.
      */
     public function mapEmbeddedList($source, $target, array $config = [])
     {
         return Yii::createObject(array_merge(
             [
-                'class' => Mapping::className(),
+                'class' => Mapping::class,
                 'source' => $source,
                 'target' => $target,
                 'multiple' => true,
@@ -258,6 +260,21 @@ trait ContainerTrait
     {
         foreach ($this->getEmbeddedValues() as $name => $value) {
             $this->$name = $value;
+        }
+    }
+
+    public function generateAttributeLabel($attribute)
+    {
+        if (preg_match('/(?<attribute>[a-zA-Z0-9]+)((\[(?<subAttribute>[a-zA-Z0-9]+)\])(?<subSubAttributes>.+)?)?/', $attribute, $match)) {
+            if (array_key_exists('subAttribute', $match) && $this->hasEmbedded($match['attribute'])) {
+                /** @var Model $embedModel */
+                $embedModel = $this->{$match['attribute']};
+                return $this->getAttributeLabel($match['attribute'])
+                    . ' '
+                    . $embedModel->getAttributeLabel($match['subAttribute'] . (array_key_exists('subSubAttributes', $match) ? $match['subSubAttributes'] : ''));
+            } else {
+                return parent::generateAttributeLabel($attribute);
+            }
         }
     }
 }
