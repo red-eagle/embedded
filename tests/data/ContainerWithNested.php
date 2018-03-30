@@ -38,4 +38,5 @@ class ContainerWithNested extends Model implements ContainerInterface
     {
         return $this->mapEmbedded('nestedSelfData', __CLASS__);
     }
+
 }

@@ -51,10 +51,23 @@ trait NestedTrait
 
         $mapping = $this->owner->getEmbeddedMapping($this->ownerAttribute);
         $formName = $this->owner->formName() . "[{$this->ownerAttribute}]";
+
         if ($mapping->multiple) {
             return "{$formName}[{$this->index}]";
         } else {
             return $formName;
         }
+    }
+
+    public function getIsNewRecord() {
+        if ($this->hasProperty('isNewRecord')) {
+            return $this->isNewRecord;
+        }
+
+        if (!empty($this->owner)) {
+            return $this->owner->isNewRecord;
+        }
+
+        return true;
     }
 }
