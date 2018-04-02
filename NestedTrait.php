@@ -43,7 +43,7 @@ trait NestedTrait
         return $this->index;
     }
 
-    public function formName()
+    public function formName($withIndex = false)
     {
         if (empty($this->owner)) {
             return parent::formName();
@@ -52,7 +52,7 @@ trait NestedTrait
         $mapping = $this->owner->getEmbeddedMapping($this->ownerAttribute);
         $formName = $this->owner->formName() . "[{$this->ownerAttribute}]";
 
-        if ($mapping->multiple) {
+        if ($mapping->multiple && $withIndex) {
             return "{$formName}[{$this->index}]";
         } else {
             return $formName;

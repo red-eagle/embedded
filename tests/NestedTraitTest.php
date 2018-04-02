@@ -77,6 +77,9 @@ class NestedTraitTest extends TestCase
         $this->assertSame($nestedList, $container->getEmbedded('nestedList'));
     }
 
+    /**
+     * @return ContainerWithNested
+     */
     public function testNestedFillUpEmbedList()
     {
         $container = new ContainerWithNested();
@@ -100,6 +103,21 @@ class NestedTraitTest extends TestCase
 
         $this->assertEquals('name1', $container->nestedList[0]->name);
         $this->assertEquals('name2', $container->nestedList[1]->name);
+
+        return $container;
+    }
+
+    /**
+     * @depends testNestedFillUpEmbedList
+     * @throws \yii\base\InvalidConfigException
+     * @param $container ContainerWithNested
+     */
+    public function testFormNameForNestedModelList(ContainerWithNested $container)
+    {
+        foreach ($container->nestedList as $id => $nested) {
+            $this->assertEquals($container->formName() . '[nestedList]', $nested->formName());
+            $this->assertEquals($container->formName() . '[nestedList][' . $id . ']', $nested->formName(true));
+        }
     }
 
     public function testFormNameForNestedModel()
@@ -122,7 +140,8 @@ class NestedTraitTest extends TestCase
         $this->assertEquals($container->formName() . '[self]', $container->self->formName());
     }
 
-    public function testNestedModelLabelGeneration() {
+    public function testNestedModelLabelGeneration()
+    {
         $container = new ContainerWithNested();
 
         $this->assertEquals('Nested Model Name1', $container->getAttributeLabel('nestedModel[name1]'));
