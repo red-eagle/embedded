@@ -60,10 +60,6 @@ trait NestedTrait
     }
 
     public function getIsNewRecord() {
-        if ($this->hasProperty('isNewRecord')) {
-            return $this->isNewRecord;
-        }
-
         if (!empty($this->owner)) {
             return $this->owner->isNewRecord;
         }

@@ -3,9 +3,10 @@
 namespace yii2tech\tests\unit\embedded\data;
 
 use yii\base\Model;
+use yii2tech\embedded\NestedInterface;
 use yii2tech\embedded\NestedTrait;
 
-class Nested extends Model
+class Nested extends Model implements NestedInterface
 {
     use NestedTrait;
 

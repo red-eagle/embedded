@@ -6,6 +6,7 @@ use yii\base\BaseObject;
 use yii\base\Model;
 use yii2tech\embedded\ContainerInterface;
 use yii2tech\embedded\ContainerTrait;
+use yii2tech\embedded\NestedInterface;
 use yii2tech\embedded\NestedTrait;
 
 /**
@@ -16,7 +17,7 @@ use yii2tech\embedded\NestedTrait;
  * @property \stdClass[] $nullAutoCreate
  * @property \stdClass[]|null $nullList
  */
-class ContainerWithNested extends Model implements ContainerInterface
+class ContainerWithNested extends Model implements ContainerInterface, NestedInterface
 {
     use ContainerTrait, NestedTrait;
 

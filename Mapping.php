@@ -86,6 +86,7 @@ class Mapping extends BaseObject
     /**
      * Returns actual embedded value.
      * @param object $owner owner object.
+     * @param string|null $name attribute name in owner object
      * @return object|object[]|null embedded value.
      */
     public function getValue($owner, $name = null)
@@ -119,8 +120,7 @@ class Mapping extends BaseObject
         }
 
         $reflection = new \ReflectionClass($targetConfig['class']);
-
-        if ($isNested = array_key_exists(NestedTrait::class, $reflection->getTraits())) {
+        if ($isNested = ($reflection->implementsInterface('yii2tech\embedded\NestedInterface'))) {
             $targetConfig['owner'] = $owner;
             $targetConfig['ownerAttribute'] = empty($name) ? '' : $name;
         }
