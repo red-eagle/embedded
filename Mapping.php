@@ -62,11 +62,21 @@ class Mapping extends BaseObject
      */
     public function setValue($value)
     {
+        $targetConfig = ['class' => $this->target];
         if (!is_null($value)) {
             if ($this->multiple) {
                 if (is_array($value)) {
                     $arrayObject = new ArrayObject();
                     foreach ($value as $k => $v) {
+                        if (is_array($v)) {
+                            $v = Yii::createObject(
+                                array_merge(
+                                    $targetConfig,
+                                    $v,
+                                    ['index' => $k]
+                                )
+                            );
+                        }
                         $arrayObject[$k] = $v;
                     }
                     $value = $arrayObject;
@@ -77,7 +87,7 @@ class Mapping extends BaseObject
                 if (is_array($value)) {
                     $value = Yii::createObject(
                         array_merge(
-                            ['class' => $this->target],
+                            $targetConfig,
                             $value
                         )
                     );
@@ -93,17 +103,43 @@ class Mapping extends BaseObject
 
     /**
      * Returns actual embedded value.
-     * @param object $owner     owner object.
-     * @param string|null $name attribute name in owner object
+     * @param object|ContainerTrait $owner owner object.
+     * @param string|null $name            attribute name in owner object
      * @return object|object[]|null embedded value.
      */
     public function getValue($owner, $name = null)
     {
-        if ($this->_value === false) {
-            $this->_value = $this->createValue($owner, $name);
+        $value = $this->_value;
+
+        if ($value === false) {
+            $value = $this->createValue($owner, $name);
         }
-        return $this->_value;
+
+        if ($this->multiple && !empty($value)) {
+            foreach ($value as $key => $item) {
+                if ($item instanceof NestedInterface && ($item->getOwner() !== $owner || empty($item->getOwnerAttribute()))) {
+                    $item->setOwner($owner);
+                    $item->setOwnerAttribute($name);
+                }
+                if ($item instanceof NestedListInterface && $item->getIndex() !== $key) {
+                    $item->setIndex($key);
+                }
+                $value[$key] = $item;
+            }
+        } elseif ($value instanceof NestedInterface) {
+            if ($value->getOwner() !== $owner) {
+                $value->setOwner($owner);
+            }
+            if ($value->getOwnerAttribute() !== $name) {
+                $value->setOwnerAttribute($name);
+            }
+        }
+
+        $this->_value = $value;
+
+        return $value;
     }
+
 
     /**
      * @return bool whether embedded value has been already initialized or not.
@@ -116,7 +152,7 @@ class Mapping extends BaseObject
 
     /**
      * @param object|ContainerTrait $owner owner object
-     * @throws InvalidParamException on invalid source.
+     * @throws InvalidArgumentException on invalid source.
      * @return array|null|object value.
      */
     private function createValue($owner, $name = null)
@@ -125,12 +161,6 @@ class Mapping extends BaseObject
             $targetConfig = $this->target;
         } else {
             $targetConfig = ['class' => $this->target];
-        }
-
-        $reflection = new \ReflectionClass($targetConfig['class']);
-        if ($isNested = ($reflection->implementsInterface('yii2tech\embedded\NestedInterface'))) {
-            $targetConfig['owner'] = $owner;
-            $targetConfig['ownerAttribute'] = empty($name) ? '' : $name;
         }
 
         $sourceValue = $owner->{$this->source};
@@ -148,9 +178,6 @@ class Mapping extends BaseObject
                     throw new InvalidArgumentException("Source value for the embedded should be an array.");
                 }
                 $currentConfig = $targetConfig;
-                if ($isNested) {
-                    $currentConfig['index'] = $key;
-                }
                 $result[$key] = Yii::createObject(array_merge($currentConfig, $frame));
             }
         } else {
@@ -197,6 +224,9 @@ class Mapping extends BaseObject
     private function extractObjectValues($object)
     {
         $values = ArrayHelper::toArray($object, [], false);
+        unset($values['owner']);
+        unset($values['ownerAttribute']);
+        unset($values['index']);
         if ($object instanceof ContainerInterface) {
             $values = array_merge($values, $object->getEmbeddedValues());
         }

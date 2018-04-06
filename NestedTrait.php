@@ -21,9 +21,40 @@ trait NestedTrait
     /** @var BaseObject|ContainerTrait */
     public $owner;
 
+    /** @var string */
     public $ownerAttribute;
 
+    /** @var string|integer */
     public $index;
+
+    public function formName($withIndex = true)
+    {
+        if (empty($this->owner)) {
+            return parent::formName();
+        }
+
+        $mapping = $this->owner->getEmbeddedMapping($this->ownerAttribute);
+
+        if ($this->owner instanceof NestedListInterface) {
+            $formName = $this->owner->formName(true) . "[{$this->ownerAttribute}]";
+        } else {
+            $formName = $this->owner->formName() . "[{$this->ownerAttribute}]";
+        }
+
+        if ($this instanceof NestedListInterface && $mapping->multiple && $withIndex) {
+            return "{$formName}[{$this->getIndex()}]";
+        } else {
+            return $formName;
+        }
+    }
+
+    public function getIsNewRecord() {
+        if (!empty($this->owner)) {
+            return $this->owner->isNewRecord;
+        }
+
+        return true;
+    }
 
     /**
      * @return Model
@@ -38,36 +69,28 @@ trait NestedTrait
         return $this->ownerAttribute;
     }
 
+    /**
+     * @param ContainerTrait|BaseObject $owner
+     */
+    public function setOwner($owner)
+    {
+        $this->owner = $owner;
+    }
+
+    /**
+     * @param mixed $ownerAttribute
+     */
+    public function setOwnerAttribute($ownerAttribute)
+    {
+        $this->ownerAttribute = $ownerAttribute;
+    }
+
     public function getIndex()
     {
         return $this->index;
     }
 
-    public function formName($withIndex = true)
-    {
-        if (empty($this->owner)) {
-            return parent::formName();
-        }
-
-        $mapping = $this->owner->getEmbeddedMapping($this->ownerAttribute);
-        if ($this->owner instanceof NestedInterface) {
-            $formName = $this->owner->formName(true) . "[{$this->ownerAttribute}]";
-        } else {
-            $formName = $this->owner->formName() . "[{$this->ownerAttribute}]";
-        }
-
-        if ($mapping->multiple && $withIndex) {
-            return "{$formName}[{$this->index}]";
-        } else {
-            return $formName;
-        }
-    }
-
-    public function getIsNewRecord() {
-        if (!empty($this->owner)) {
-            return $this->owner->isNewRecord;
-        }
-
-        return true;
+    public function setIndex($index) {
+        $this->index = $index;
     }
 }

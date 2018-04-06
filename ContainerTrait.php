@@ -244,7 +244,7 @@ trait ContainerTrait
     public function getEmbeddedValues()
     {
         $values = [];
-        foreach ($this->_embedded as $embedded) {
+        foreach ($this->_embedded as $key => $embedded) {
             if (!$embedded->getIsValueInitialized()) {
                 continue;
             }

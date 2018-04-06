@@ -6,5 +6,6 @@ interface NestedInterface
 {
     public function getOwner();
     public function getOwnerAttribute();
-    public function formName($withIndex);
+    public function setOwner($owner);
+    public function setOwnerAttribute($ownerAttribute);
 }

@@ -138,6 +138,27 @@ class NestedTraitTest extends TestCase
 
         $this->assertSame($container, $container->self->owner);
         $this->assertEquals($container->formName() . '[self]', $container->self->formName());
+
+        return $container;
+    }
+
+    public function testMultiLevelNestedModelListLabelGeneration()
+    {
+        $container = new ContainerWithNested();
+        $container->selfList = [
+            [
+                'nestedModel' => ['name1' => 'value1_1', 'name2' => 'value2_1']
+            ],
+            [
+                'nestedModel' => ['name1' => 'value1_2', 'name2' => 'value2_2']
+            ],
+        ];
+
+        foreach ($container->selfList as $id => $nestedContainer) {
+            /** @var ContainerWithNested $nestedContainer */
+            $this->assertEquals("ContainerWithNested[selfList][{$id}]", $nestedContainer->formName());
+            $this->assertEquals("ContainerWithNested[selfList][{$id}][nestedModel]", $nestedContainer->nestedModel->formName());
+        }
     }
 
     public function testNestedModelLabelGeneration()
@@ -147,4 +168,6 @@ class NestedTraitTest extends TestCase
         $this->assertEquals('Nested Model Name1', $container->getAttributeLabel('nestedModel[name1]'));
         $this->assertEquals('Nested Model Name2', $container->getAttributeLabel('nestedModel[name2]'));
     }
+
+
 }
