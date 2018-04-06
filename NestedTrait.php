@@ -43,14 +43,18 @@ trait NestedTrait
         return $this->index;
     }
 
-    public function formName($withIndex = false)
+    public function formName($withIndex = true)
     {
         if (empty($this->owner)) {
             return parent::formName();
         }
 
         $mapping = $this->owner->getEmbeddedMapping($this->ownerAttribute);
-        $formName = $this->owner->formName() . "[{$this->ownerAttribute}]";
+        if ($this->owner instanceof NestedInterface) {
+            $formName = $this->owner->formName(true) . "[{$this->ownerAttribute}]";
+        } else {
+            $formName = $this->owner->formName() . "[{$this->ownerAttribute}]";
+        }
 
         if ($mapping->multiple && $withIndex) {
             return "{$formName}[{$this->index}]";

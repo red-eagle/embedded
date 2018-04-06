@@ -115,8 +115,8 @@ class NestedTraitTest extends TestCase
     public function testFormNameForNestedModelList(ContainerWithNested $container)
     {
         foreach ($container->nestedList as $id => $nested) {
-            $this->assertEquals($container->formName() . '[nestedList]', $nested->formName());
-            $this->assertEquals($container->formName() . '[nestedList][' . $id . ']', $nested->formName(true));
+            $this->assertEquals($container->formName() . '[nestedList]', $nested->formName(false));
+            $this->assertEquals($container->formName() . '[nestedList][' . $id . ']', $nested->formName());
         }
     }
 

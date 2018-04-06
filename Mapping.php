@@ -58,7 +58,7 @@ class Mapping extends BaseObject
     /**
      * Sets the embedded value.
      * @param array|object|null $value actual value.
-     * @throws InvalidParamException on invalid argument
+     * @throws InvalidArgumentException on invalid argument
      */
     public function setValue($value)
     {
