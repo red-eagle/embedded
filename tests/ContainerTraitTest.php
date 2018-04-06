@@ -5,6 +5,19 @@ namespace yii2tech\tests\unit\embedded;
 use yii2tech\embedded\ContainerTrait;
 use yii2tech\tests\unit\embedded\data\Container;
 
+/**
+ * Class ContainerTraitTest
+ * @package yii2tech\tests\unit\embedded
+ * @method assertTrue($condition)
+ * @method assertFalse($condition)
+ * @method assertEquals($expected, $actual)
+ * @method assertNotEquals($expected, $actual)
+ * @method assertSame($expected, $actual)
+ * @method assertEmpty($value)
+ * @method assertNotEmpty($value)
+ * @method assertNull($value)
+ * @method assertNotNull($value)
+ */
 class ContainerTraitTest extends TestCase
 {
     public function testFillUpEmbed()
@@ -224,5 +237,24 @@ class ContainerTraitTest extends TestCase
 
         unset($container->model);
         $this->assertFalse(isset($container->model));
+    }
+
+    public function testSetEmbedDocumentAsArray()
+    {
+        $container = new Container();
+        $container->model = [
+            'name1' => 'value1',
+            'name2' => 'value2',
+        ];
+
+        $model = new \stdClass();
+        $model->name1 = 'value1';
+        $model->name2 = 'value2';
+
+        $this->assertTrue($container->getEmbedded('model') instanceof \stdClass);
+        $this->assertTrue($container->getEmbedded('model') === $container->model);
+        $this->assertEquals('value1', $container->model->name1);
+        $this->assertEquals('value2', $container->model->name2);
+        $this->assertEquals($container->model, $model);
     }
 }

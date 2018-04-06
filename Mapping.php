@@ -1,8 +1,8 @@
 <?php
 /**
- * @link https://github.com/yii2tech
+ * @link      https://github.com/yii2tech
  * @copyright Copyright (c) 2015 Yii2tech
- * @license [New BSD License](http://www.opensource.org/licenses/bsd-license.php)
+ * @license   [New BSD License](http://www.opensource.org/licenses/bsd-license.php)
  */
 
 namespace yii2tech\embedded;
@@ -17,12 +17,12 @@ use yii\helpers\ArrayHelper;
  * Represents mapping between embedded object or object list and its container.
  * It stores declaration of embedded policy and handles embedded value composition and extraction.
  *
- * @see ContainerTrait
+ * @see    ContainerTrait
  *
  * @property bool $isValueInitialized whether embedded value has been already initialized or not.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 1.0
+ * @since  1.0
  */
 class Mapping extends BaseObject
 {
@@ -74,6 +74,14 @@ class Mapping extends BaseObject
                     throw new InvalidArgumentException("Value should either an array or a null, '" . gettype($value) . "' given.");
                 }
             } else {
+                if (is_array($value)) {
+                    $value = Yii::createObject(
+                        array_merge(
+                            ['class' => $this->target],
+                            $value
+                        )
+                    );
+                }
                 if (!is_object($value)) {
                     throw new InvalidArgumentException("Value should either an object or a null, '" . gettype($value) . "' given.");
                 }
@@ -85,7 +93,7 @@ class Mapping extends BaseObject
 
     /**
      * Returns actual embedded value.
-     * @param object $owner owner object.
+     * @param object $owner     owner object.
      * @param string|null $name attribute name in owner object
      * @return object|object[]|null embedded value.
      */
