@@ -13,6 +13,8 @@ use yii2tech\embedded\NestedTrait;
 /**
  * @property Nested $nestedModel
  * @property Nested[] $nestedList
+ * @property Nested $nestedMappedModel
+ * @property Nested[] $nestedMappedList
  * @property ContainerWithNested $self
  * @property ContainerWithNested[] $selfList
  * @property \stdClass[] $null
@@ -24,7 +26,9 @@ class ContainerWithNested extends Model implements ContainerInterface, NestedInt
     use ContainerTrait, NestedTrait;
 
     public $nestedData = [];
+    public $nestedMappedData = [];
     public $nestedListData = [];
+    public $nestedMappedListData = [];
     public $nestedSelfData = [];
     public $nestedSelfListData = [];
 
@@ -46,6 +50,21 @@ class ContainerWithNested extends Model implements ContainerInterface, NestedInt
     public function embedSelfList()
     {
         return $this->mapEmbeddedList('nestedSelfData', __CLASS__);
+    }
+
+    public function attributesEmbedMap()
+    {
+        return [
+            'nestedMappedModel' => [
+                'source' => 'nestedMappedData',
+                'target' => Nested::class
+            ],
+            'nestedMappedList' => [
+                'source' => 'nestedMappedListData',
+                'target' => Nested::class,
+                'multiple' => true
+            ],
+        ];
     }
 
 }

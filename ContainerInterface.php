@@ -62,4 +62,16 @@ interface ContainerInterface
      * @return Mapping embedded mapping.
      */
     public function getEmbeddedMapping($name);
+
+    /**
+     * Returns array of embedded attributes in declaration style
+     * Format:
+     *      [
+     *          'target' => 'class\of\emebeded\Attribute',
+     *          'source' => attribute with source for embed model
+     *          'multiple' => boolean value
+     *      ]
+     * @return array
+     */
+    public function attributesEmbedMap();
 }

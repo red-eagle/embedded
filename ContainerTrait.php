@@ -166,12 +166,24 @@ trait ContainerTrait
     {
         if (!isset($this->_embedded[$name])) {
             $method = $this->composeEmbeddedDeclarationMethodName($name);
-            if (!method_exists($this, $method)) {
-                throw new InvalidArgumentException("'" . get_class($this) . "' has no declaration ('{$method}()') for the embedded '{$name}'");
-            }
-            $mapping = call_user_func([$this, $method]);
-            if (!$mapping instanceof Mapping) {
-                throw new InvalidArgumentException("Mapping declaration '" . get_class($this) . "::{$method}()' should return instance of '" . Mapping::className() . "'");
+            if (method_exists($this, $method)) {
+                $mapping = call_user_func([$this, $method]);
+                if (!$mapping instanceof Mapping) {
+                    throw new InvalidArgumentException("Mapping declaration '" . get_class($this) . "::{$method}()' should return instance of '" . Mapping::class . "'");
+                }
+            } elseif (array_key_exists($name, $this->attributesEmbedMap())) {
+                $mapping = Yii::createObject(
+                    array_merge(
+                        [
+                            'class' => Mapping::class,
+                            'multiple' => false
+                        ],
+                        $this->attributesEmbedMap()[$name]
+                    )
+                );
+            } else {
+                throw new InvalidArgumentException("'" . get_class($this) . "' has no declaration ('{$method}()') or map config in attributesEmbedMap() for the embedded '{$name}'");
+
             }
             $this->_embedded[$name] = $mapping;
         }
@@ -185,7 +197,7 @@ trait ContainerTrait
      */
     public function hasEmbedded($name)
     {
-        return (isset($this->_embedded[$name])) || method_exists($this, $this->composeEmbeddedDeclarationMethodName($name));
+        return (isset($this->_embedded[$name])) || method_exists($this, $this->composeEmbeddedDeclarationMethodName($name)) || array_key_exists($name, $this->attributesEmbedMap());
     }
 
     /**
@@ -276,5 +288,10 @@ trait ContainerTrait
                 return parent::generateAttributeLabel($attribute);
             }
         }
+    }
+
+    public function attributesEmbedMap()
+    {
+        return [];
     }
 }
