@@ -15,7 +15,7 @@ namespace yii2tech\embedded;
  *
  * @package yii2tech\embedded
  */
-interface NestedListInterface
+interface NestedListInterface extends NestedInterface
 {
     public function getIndex();
     public function setIndex($index);

@@ -10,6 +10,8 @@ namespace yii2tech\embedded;
 
 use yii\base\BaseObject;
 use yii\base\Model;
+use yii\base\UnknownMethodException;
+use yii\db\ActiveRecord;
 
 /**
  * Trait NestedTrait
@@ -26,6 +28,8 @@ trait NestedTrait
 
     /** @var string|integer */
     public $index;
+
+    protected $_oldAttributes = [];
 
     public function formName($withIndex = true)
     {
@@ -48,7 +52,8 @@ trait NestedTrait
         }
     }
 
-    public function getIsNewRecord() {
+    public function getIsNewRecord()
+    {
         if (!empty($this->owner)) {
             return $this->owner->isNewRecord;
         }
@@ -90,7 +95,57 @@ trait NestedTrait
         return $this->index;
     }
 
-    public function setIndex($index) {
+    public function setIndex($index)
+    {
         $this->index = $index;
+    }
+
+    public function getOldAttribute($name)
+    {
+        if ($this instanceof ActiveRecord) {
+            return parent::getOldAttribute($name);
+        }
+
+        $oldAttributes = $this->getOldAttributes();
+
+        return $oldAttributes[$name];
+    }
+
+    public function getOldAttributes()
+    {
+        if ($this instanceof ActiveRecord) {
+            return parent::getOldAttributes();
+        }
+
+        if (empty($this->_oldAttributes)
+            && $this instanceof NestedInterface
+            && !empty($owner = $this->getOwner())
+            && $this->getOwner() instanceof ContainerInterface) {
+
+            /** @var ContainerTrait $owner */
+            $ownerAttribute = $this->getOwnerAttribute();
+            $map = $owner->getEmbeddedMapping($ownerAttribute);
+
+            if ($owner->hasMethod('getOldAttribute')) {
+                $this->_oldAttributes = $owner->getOldAttribute($map->source);
+            }
+        }
+
+        if (!empty($this->_oldAttributes)) {
+            return $this->_oldAttributes;
+        }
+
+        throw new UnknownMethodException();
+    }
+
+    public function isAttributeChanged($name, $identical = true)
+    {
+        $currentValue = $this->$name;
+        $oldValue = $this->getOldAttribute($name);
+        if ($identical) {
+            return $currentValue !== $oldValue;
+        }
+
+        return $currentValue != $oldValue;
     }
 }

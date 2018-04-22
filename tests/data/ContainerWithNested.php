@@ -21,7 +21,7 @@ use yii2tech\embedded\NestedTrait;
  * @property \stdClass[] $nullAutoCreate
  * @property \stdClass[]|null $nullList
  */
-class ContainerWithNested extends Model implements ContainerInterface, NestedInterface, NestedListInterface
+class ContainerWithNested extends Model implements ContainerInterface, NestedListInterface
 {
     use ContainerTrait, NestedTrait;
 
