@@ -8,8 +8,11 @@
 namespace yii2tech\embedded;
 
 use Yii;
+use yii\base\InvalidCallException;
 use yii\base\Model;
 use yii\base\InvalidArgumentException;
+use yii\base\UnknownMethodException;
+use yii\db\ActiveRecord;
 
 /**
  * ContainerTrait can be used to satisfy [[ContainerInterface]].
@@ -65,6 +68,7 @@ use yii\base\InvalidArgumentException;
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since  1.0
  * @mixin Model
+ * @mixin \yii2tech\embedded\mongodb\ActiveRecord
  */
 trait ContainerTrait
 {
@@ -275,6 +279,10 @@ trait ContainerTrait
         }
     }
 
+    /**
+     * @param $attribute
+     * @return string
+     */
     public function generateAttributeLabel($attribute)
     {
         if (preg_match('/(?<attribute>[a-zA-Z0-9]+)((\[(?<subAttribute>[a-zA-Z0-9]+)\])(?<subSubAttributes>.+)?)?/', $attribute, $match)) {
@@ -290,6 +298,19 @@ trait ContainerTrait
         }
     }
 
+    /**
+     * Array for configuring Mapping object
+     *
+     * 'attributeName': [
+     *      'source': string, source attribute name
+     *      'target': string, target class,
+     *      'multiple': boolean,
+     *      'createFromNull': boolean,
+     *      'unsetSource': boolean,
+     * ]
+     *
+     * @return array
+     */
     public function attributesEmbedMap()
     {
         return [];
