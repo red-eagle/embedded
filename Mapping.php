@@ -11,6 +11,7 @@ use ArrayObject;
 use yii\base\InvalidArgumentException;
 use yii\base\BaseObject;
 use Yii;
+use yii\base\Model;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -66,31 +67,40 @@ class Mapping extends BaseObject
         if (!is_null($value)) {
             if ($this->multiple) {
                 if (is_array($value)) {
-                    $arrayObject = new ArrayObject();
+                    $items = new ArrayObject();
                     foreach ($value as $k => $v) {
                         if (is_array($v)) {
-                            $v = Yii::createObject(
+                            $item = Yii::createObject(
                                 array_merge(
                                     $targetConfig,
-                                    $v,
                                     ['index' => $k]
                                 )
                             );
+
+                            if ($item instanceof Model) {
+                                $item->load($v, '');
+                            } else {
+                                $item = Yii::configure($item, $v);
+                            }
+                        } else {
+                            $item = $v;
                         }
-                        $arrayObject[$k] = $v;
+
+                        $items[$k] = $item;
                     }
-                    $value = $arrayObject;
+                    $value = $items;
                 } elseif (!($value instanceof \ArrayAccess)) {
                     throw new InvalidArgumentException("Value should either an array or a null, '" . gettype($value) . "' given.");
                 }
             } else {
                 if (is_array($value)) {
-                    $value = Yii::createObject(
-                        array_merge(
-                            $targetConfig,
-                            $value
-                        )
-                    );
+                    $item = Yii::createObject($targetConfig);
+                    if ($item instanceof Model) {
+                        $item->load($value, '');
+                    } else {
+                        $item = Yii::configure($item, $value);
+                    }
+                    $value = $item;
                 }
                 if (!is_object($value)) {
                     throw new InvalidArgumentException("Value should either an object or a null, '" . gettype($value) . "' given.");
