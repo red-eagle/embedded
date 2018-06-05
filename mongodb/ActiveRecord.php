@@ -1,12 +1,14 @@
 <?php
 /**
- * @link https://github.com/yii2tech
+ * @link      https://github.com/yii2tech
  * @copyright Copyright (c) 2015 Yii2tech
- * @license [New BSD License](http://www.opensource.org/licenses/bsd-license.php)
+ * @license   [New BSD License](http://www.opensource.org/licenses/bsd-license.php)
  */
 
 namespace yii2tech\embedded\mongodb;
 
+use yii\base\Component;
+use yii\base\Event;
 use yii2tech\embedded\ContainerInterface;
 use yii2tech\embedded\ContainerTrait;
 
@@ -15,10 +17,10 @@ use yii2tech\embedded\ContainerTrait;
  *
  * Obviously, this class requires [yiisoft/yii2-mongodb](https://github.com/yiisoft/yii2-mongodb) extension installed.
  *
- * @see \yii\mongodb\ActiveRecord
+ * @see    \yii\mongodb\ActiveRecord
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 1.0
+ * @since  1.0
  */
 class ActiveRecord extends \yii\mongodb\ActiveRecord implements ContainerInterface
 {
@@ -35,4 +37,31 @@ class ActiveRecord extends \yii\mongodb\ActiveRecord implements ContainerInterfa
         $this->refreshFromEmbedded();
         return true;
     }
+
+    /**
+     * @param string $name
+     * @param Event|null $event
+     */
+    public function trigger($name, Event $event = null)
+    {
+        foreach ($this->getEmbeddedValues() as $embeddedValue) {
+            if (is_iterable($embeddedValue)) {
+                foreach ($embeddedValue as $item) {
+                    self::triggerEventForItem($item, $name, $event);
+                }
+            } else {
+                self::triggerEventForItem($embeddedValue, $name, $event);
+            }
+        }
+
+        parent::trigger($name, $event);
+    }
+
+    private static function triggerEventForItem($item, $name, $event)
+    {
+        if (is_object($item) && $item instanceof Component) {
+            $item->trigger($name, $event);
+        }
+    }
+
 }
