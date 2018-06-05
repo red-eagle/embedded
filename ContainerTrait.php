@@ -315,4 +315,15 @@ trait ContainerTrait
     {
         return [];
     }
+
+    public function attributesEmbed() {
+        $attributes = array_keys($this->attributesEmbedMap());
+        $reflection = new \ReflectionClass($this);
+        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if (strpos('embed', $method->getName()) === 0) {
+                $attributes[] = $method->getName();
+            }
+        }
+        return $attributes;
+    }
 }
