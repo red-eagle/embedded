@@ -8,11 +8,8 @@
 namespace yii2tech\embedded;
 
 use Yii;
-use yii\base\InvalidCallException;
 use yii\base\Model;
 use yii\base\InvalidArgumentException;
-use yii\base\UnknownMethodException;
-use yii\db\ActiveRecord;
 
 /**
  * ContainerTrait can be used to satisfy [[ContainerInterface]].
@@ -209,7 +206,7 @@ trait ContainerTrait
      * @param string $source       source field name
      * @param string|array $target target class or array configuration.
      * @param array $config        mapping extra configuration.
-     * @return Mapping embedding mapping instance.
+     * @return Mapping|object embedding mapping instance.
      */
     public function mapEmbedded($source, $target, array $config = [])
     {
@@ -229,7 +226,7 @@ trait ContainerTrait
      * @param string $source       source field name
      * @param string|array $target target class or array configuration.
      * @param array $config        mapping extra configuration.
-     * @return Mapping embedding mapping instance.
+     * @return Mapping|object embedding mapping instance.
      */
     public function mapEmbeddedList($source, $target, array $config = [])
     {
@@ -292,10 +289,10 @@ trait ContainerTrait
                 return $this->getAttributeLabel($match['attribute'])
                     . ' '
                     . $embedModel->getAttributeLabel($match['subAttribute'] . (array_key_exists('subSubAttributes', $match) ? $match['subSubAttributes'] : ''));
-            } else {
-                return parent::generateAttributeLabel($attribute);
             }
         }
+        return parent::generateAttributeLabel($attribute);
+
     }
 
     /**
@@ -320,7 +317,7 @@ trait ContainerTrait
         $attributes = array_keys($this->attributesEmbedMap());
         $reflection = new \ReflectionClass($this);
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if (strpos('embed', $method->getName()) === 0) {
+            if (strpos($method->getName(), 'embed') === 0) {
                 $attributes[] = $method->getName();
             }
         }
