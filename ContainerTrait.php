@@ -316,7 +316,7 @@ trait ContainerTrait
 
     public function attributesEmbed()
     {
-        if (!is_null($this->_attributesEmbed)) {
+        if (is_null($this->_attributesEmbed)) {
             $this->_attributesEmbed = array_keys($this->attributesEmbedMap());
             $reflection = new \ReflectionClass($this);
             foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
