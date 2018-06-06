@@ -44,7 +44,8 @@ class ActiveRecord extends \yii\mongodb\ActiveRecord implements ContainerInterfa
      */
     public function trigger($name, Event $event = null)
     {
-        foreach ($this->attributesEmbed() as $embeddedValue) {
+        foreach ($this->attributesEmbed() as $attribute) {
+            $embeddedValue = $this->{$attribute};
             if (is_iterable($embeddedValue)) {
                 foreach ($embeddedValue as $item) {
                     self::triggerEventForItem($item, $name, $event);
