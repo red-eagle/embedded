@@ -74,6 +74,7 @@ trait ContainerTrait
      */
     private $_embedded = [];
 
+    private $_attributesEmbed = null;
 
     /**
      * PHP getter magic method.
@@ -313,14 +314,18 @@ trait ContainerTrait
         return [];
     }
 
-    public function attributesEmbed() {
-        $attributes = array_keys($this->attributesEmbedMap());
-        $reflection = new \ReflectionClass($this);
-        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if (strpos($method->getName(), 'embed') === 0) {
-                $attributes[] = $method->getName();
+    public function attributesEmbed()
+    {
+        if (!is_null($this->_attributesEmbed)) {
+            $this->_attributesEmbed = array_keys($this->attributesEmbedMap());
+            $reflection = new \ReflectionClass($this);
+            foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+                if (strpos($method->getName(), 'embed') === 0) {
+                    $this->_attributesEmbed[] = lcfirst(substr($method->getName(), 5));
+                }
             }
         }
-        return $attributes;
+
+        return $this->_attributesEmbed;
     }
 }
