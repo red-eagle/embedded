@@ -7,8 +7,6 @@
 
 namespace yii2tech\embedded\mongodb;
 
-use yii\base\Component;
-use yii\base\Event;
 use yii2tech\embedded\ContainerInterface;
 use yii2tech\embedded\ContainerTrait;
 
@@ -38,31 +36,5 @@ class ActiveRecord extends \yii\mongodb\ActiveRecord implements ContainerInterfa
         return true;
     }
 
-    /**
-     * @param string $name
-     * @param Event|null $event
-     */
-    public function trigger($name, Event $event = null)
-    {
-        foreach ($this->attributesEmbed() as $attribute) {
-            $embeddedValue = $this->{$attribute};
-            if (is_iterable($embeddedValue)) {
-                foreach ($embeddedValue as $item) {
-                    self::triggerEventForItem($item, $name, $event);
-                }
-            } else {
-                self::triggerEventForItem($embeddedValue, $name, $event);
-            }
-        }
-
-        parent::trigger($name, $event);
-    }
-
-    private static function triggerEventForItem($item, $name, $event)
-    {
-        if (is_object($item) && $item instanceof Component) {
-            $item->trigger($name, $event);
-        }
-    }
 
 }

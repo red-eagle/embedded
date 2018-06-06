@@ -30,6 +30,8 @@ class ContainerWithNestedTest extends TestCase
         $this->assertTrue($container->getEmbedded('nestedMappedModel') === $container->nestedMappedModel);
         $this->assertEquals('value1', $container->nestedMappedModel->name1);
         $this->assertEquals('value2', $container->nestedMappedModel->name2);
+
+        return $container;
     }
 
     public function testMappedEmbedListFillUp()
@@ -50,4 +52,21 @@ class ContainerWithNestedTest extends TestCase
         $this->assertEquals('name1', $container->nestedMappedList[0]->name);
         $this->assertEquals('name2', $container->nestedMappedList[1]->name);
     }
+
+    /**
+     * @depends testMappedEmbedModelFillUp
+     * @param ContainerWithNested $container
+     */
+    public function testEventTrigger(ContainerWithNested $container) {
+        $exception = new \Exception('testEvent triggered');
+
+        $container->nestedMappedModel->on('testEvent', function() use ($exception) {
+            throw $exception;
+        });
+        $this->expectExceptionMessage($exception->getMessage());
+
+        $container->trigger('testEvent');
+    }
+
+
 }

@@ -8,6 +8,8 @@
 namespace yii2tech\embedded;
 
 use Yii;
+use yii\base\Component;
+use yii\base\Event;
 use yii\base\Model;
 use yii\base\InvalidArgumentException;
 
@@ -327,5 +329,32 @@ trait ContainerTrait
         }
 
         return $this->_attributesEmbed;
+    }
+
+    /**
+     * @param string $name
+     * @param Event|null $event
+     */
+    public function trigger($name, Event $event = null)
+    {
+        foreach ($this->attributesEmbed() as $attribute) {
+            $embeddedValue = $this->{$attribute};
+            if ($embeddedValue instanceof \ArrayAccess && !($embeddedValue instanceof Component)) {
+                foreach ($embeddedValue as $item) {
+                    self::triggerEventForItem($item, $name, $event);
+                }
+            } else {
+                self::triggerEventForItem($embeddedValue, $name, $event);
+            }
+        }
+
+        parent::trigger($name, $event);
+    }
+
+    private static function triggerEventForItem($item, $name, $event)
+    {
+        if (is_object($item) && $item instanceof Component) {
+            $item->trigger($name, $event);
+        }
     }
 }
